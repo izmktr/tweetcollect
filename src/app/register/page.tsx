@@ -142,8 +142,25 @@ export default function RegisterPage() {
 
           <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-4">
-              アカウント追加
+              アカウント管理について
             </h2>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <h3 className="font-medium text-blue-900 mb-2">Edge Config使用時の注意</h3>
+              <p className="text-blue-800 text-sm mb-2">
+                現在、ストレージにVercel Edge Configを使用しています。Edge Configは読み取り専用のため、アカウントの追加・削除はVercelダッシュボードで手動で行う必要があります。
+              </p>
+              <div className="text-blue-800 text-sm">
+                <strong>手動設定手順:</strong>
+                <ol className="list-decimal list-inside mt-1 space-y-1">
+                  <li>Vercelダッシュボードにアクセス</li>
+                  <li>プロジェクト → Storage → Edge Config</li>
+                  <li>&quot;Edit Config&quot;でアカウント設定を更新</li>
+                </ol>
+              </div>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-3">
+              アカウント追加（テスト用）
+            </h3>
             <form onSubmit={handleAddAccount} className="space-y-4">
               <div>
                 <label

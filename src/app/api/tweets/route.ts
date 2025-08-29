@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    let allTweets: Tweet[] = [];
+    const allTweets: Tweet[] = [];
     let anyFromCache = false;
     let anyFromAPI = false;
 
@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
     for (const account of accounts) {
       try {
         // キャッシュからデータを取得
-        let cachedData = await getCachedTweets(account.username);
+        const cachedData = await getCachedTweets(account.username);
         
         if (cachedData) {
           const formattedTweets = formatTweetData(cachedData);

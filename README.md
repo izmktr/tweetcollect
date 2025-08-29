@@ -28,9 +28,8 @@ TWITTER_BEARER_TOKEN=your_twitter_bearer_token_here
 # Admin Password for Account Registration
 ADMIN_PASSWORD=your_secure_admin_password_here
 
-# Vercel KV Configuration
-KV_REST_API_URL=your_kv_rest_api_url_here
-KV_REST_API_TOKEN=your_kv_rest_api_token_here
+# Vercel Edge Config Configuration
+EDGE_CONFIG=your_edge_config_connection_string_here
 ```
 
 ### 3. Twitter API の設定
@@ -38,11 +37,30 @@ KV_REST_API_TOKEN=your_kv_rest_api_token_here
 1. [Twitter Developer Portal](https://developer.twitter.com/) でアプリケーションを作成
 2. Bearer Token を取得し、`TWITTER_BEARER_TOKEN` に設定
 
-### 4. Vercel KV の設定
+### 4. Vercel Edge Config の設定
 
 1. Vercelプロジェクトでストレージを有効化
-2. KVストレージを作成
-3. REST API URLとトークンを環境変数に設定
+2. Edge Configを作成
+3. 接続文字列を環境変数に設定
+4. アカウント情報をEdge Configに手動設定
+
+#### Edge Configでのアカウント設定例
+```json
+{
+  "accounts": [
+    {
+      "id": "1",
+      "username": "elonmusk",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "2", 
+      "username": "vercel",
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}
+```
 
 ## 開発環境での実行
 
@@ -72,7 +90,7 @@ npm run dev
 - **フレームワーク**: Next.js 15
 - **言語**: TypeScript
 - **スタイリング**: Tailwind CSS
-- **データベース**: Vercel KV
+- **データベース**: Vercel Edge Config
 - **API**: Twitter API v2
 - **認証**: bcryptjs
 - **デプロイ**: Vercel
@@ -94,7 +112,7 @@ src/
 │   └── LoadingSpinner.tsx      # ローディングコンポーネント
 ├── lib/
 │   ├── twitter.ts              # Twitter API クライアント
-│   └── kv.ts                   # Vercel KV ユーティリティ
+│   └── kv.ts                   # Vercel Edge Config ユーティリティ
 └── types/
     └── index.ts                # TypeScript型定義
 ```
