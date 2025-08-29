@@ -46,19 +46,12 @@ export async function POST(request: NextRequest) {
     // ユーザー名の形式チェック（@を除去）
     const cleanUsername = username.replace('@', '');
     
-    try {
-      await addAccount(cleanUsername);
-      return NextResponse.json({ 
-        message: 'Account added successfully (Note: Edge Config is read-only, accounts are managed via dashboard)',
-        username: cleanUsername
-      });
-    } catch (addError) {
-      return NextResponse.json({
-        error: 'Edge Config is read-only. Please add accounts via Vercel dashboard in Edge Config settings.',
-        instruction: 'Go to Vercel Dashboard > Your Project > Storage > Edge Config > Edit Config'
-      }, { status: 400 });
-    }
+    await addAccount(cleanUsername);
 
+    return NextResponse.json({ 
+      message: 'Account added successfully',
+      username: cleanUsername
+    });
   } catch (error) {
     console.error('Error adding account:', error);
     return NextResponse.json(
@@ -99,20 +92,12 @@ export async function DELETE(request: NextRequest) {
     }
 
     const cleanUsername = username.replace('@', '');
-    
-    try {
-      await removeAccount(cleanUsername);
-      return NextResponse.json({ 
-        message: 'Account removed successfully',
-        username: cleanUsername
-      });
-    } catch (removeError) {
-      return NextResponse.json({
-        error: 'Edge Config is read-only. Please remove accounts via Vercel dashboard in Edge Config settings.',
-        instruction: 'Go to Vercel Dashboard > Your Project > Storage > Edge Config > Edit Config'
-      }, { status: 400 });
-    }
+    await removeAccount(cleanUsername);
 
+    return NextResponse.json({ 
+      message: 'Account removed successfully',
+      username: cleanUsername
+    });
   } catch (error) {
     console.error('Error removing account:', error);
     return NextResponse.json(

@@ -1,9 +1,14 @@
-import { get } from '@vercel/edge-config';
+import { Redis } from '@upstash/redis';
 import { TweetData, Account } from '@/types';
 
+const TWEETS_CACHE_PREFIX = 'tweets:';
 const ACCOUNTS_KEY = 'accounts';
+const CACHE_DURATION = 3600; // 1時間（秒）
 
-// Edge Configは読み取り専用なので、アカウント管理はローカルストレージまたはファイルベースで実装
+// 環境変数チェック
+const REDIS_URL = process.env.UPSTASH_REDIS_REST_URL;
+const REDIS_TOKEN = process.env.UPSTASH_REDIS_REST_TOKEN;
+
 // 開発環境用のモックデータ
 const MOCK_ACCOUNTS: Account[] = [
   {
@@ -12,28 +17,45 @@ const MOCK_ACCOUNTS: Account[] = [
     createdAt: new Date().toISOString()
   },
   {
-    id: '2', 
+    id: '2',
     username: 'vercel',
     createdAt: new Date().toISOString()
   }
 ];
 
+// Upstash Redis クライアントの初期化（環境変数が設定されている場合のみ）
+let redis: Redis | null = null;
+
+if (REDIS_URL && REDIS_TOKEN && REDIS_URL !== 'your_upstash_redis_url_here') {
+  redis = new Redis({
+    url: REDIS_URL,
+    token: REDIS_TOKEN,
+  });
+} else {
+  console.log('Upstash Redis not configured, using mock data for development');
+}
+
 export async function getCachedTweets(username: string): Promise<TweetData | null> {
   try {
-    // Edge Configは読み取り専用のため、キャッシュ機能は制限される
-    // 開発環境では常にnullを返してAPIから取得
-    return null;
+    if (!redis) {
+      console.log('Redis not available, returning null for cache');
+      return null;
+    }
+    const cached = await redis.get<TweetData>(`${TWEETS_CACHE_PREFIX}${username}`);
+    return cached;
   } catch (error) {
     console.error('Error getting cached tweets:', error);
     return null;
   }
 }
 
-export async function setCachedTweets(_username: string, tweetData: TweetData): Promise<void> {
+export async function setCachedTweets(username: string, tweetData: TweetData): Promise<void> {
   try {
-    // Edge Configは読み取り専用のため、キャッシュ設定は実装できない
-    // プロダクション環境ではRedisやKVを使用することを推奨
-    console.log(`Would cache tweets for ${_username}:`, tweetData.tweets.length, 'tweets');
+    if (!redis) {
+      console.log(`Would cache tweets for ${username}:`, tweetData.tweets.length, 'tweets');
+      return;
+    }
+    await redis.setex(`${TWEETS_CACHE_PREFIX}${username}`, CACHE_DURATION, tweetData);
   } catch (error) {
     console.error('Error setting cached tweets:', error);
   }
@@ -41,43 +63,58 @@ export async function setCachedTweets(_username: string, tweetData: TweetData): 
 
 export async function getAccounts(): Promise<Account[]> {
   try {
-    // Edge Configから取得を試行
-    const accounts = await get<Account[]>(ACCOUNTS_KEY);
-    if (accounts && accounts.length > 0) {
-      return accounts;
+    if (!redis) {
+      console.log('Redis not available, using mock accounts');
+      return MOCK_ACCOUNTS;
     }
-    
-    // Edge Configに設定がない場合は開発用モックデータを返す
-    console.log('Using mock accounts for development');
-    return MOCK_ACCOUNTS;
+    const accounts = await redis.get<Account[]>(ACCOUNTS_KEY);
+    return accounts || [];
   } catch (error) {
-    console.error('Error getting accounts from Edge Config, using mock data:', error);
+    console.error('Error getting accounts:', error);
     return MOCK_ACCOUNTS;
   }
 }
 
 export async function addAccount(username: string): Promise<void> {
   try {
-    // Edge Configは読み取り専用のため、アカウント追加は実装できない
-    // ここではログ出力のみ
-    console.log(`Would add account: ${username}`);
-    console.log('Note: Edge Config is read-only. Use Vercel dashboard to update accounts.');
+    if (!redis) {
+      console.log(`Would add account: ${username} (Redis not configured)`);
+      return;
+    }
     
-    // 実際の実装では、Edge ConfigをVercelダッシュボードで手動更新するか、
-    // 別のストレージ（Database、KV等）を使用する必要がある
+    const accounts = await getAccounts();
+    const newAccount: Account = {
+      id: Date.now().toString(),
+      username,
+      createdAt: new Date().toISOString()
+    };
+    
+    // 重複チェック
+    if (!accounts.find(acc => acc.username.toLowerCase() === username.toLowerCase())) {
+      accounts.push(newAccount);
+      await redis.set(ACCOUNTS_KEY, accounts);
+    }
   } catch (error) {
     console.error('Error adding account:', error);
-    throw new Error('Account management not available with Edge Config (read-only)');
+    throw error;
   }
 }
 
 export async function removeAccount(username: string): Promise<void> {
   try {
-    // Edge Configは読み取り専用のため、アカウント削除は実装できない
-    console.log(`Would remove account: ${username}`);
-    console.log('Note: Edge Config is read-only. Use Vercel dashboard to update accounts.');
+    if (!redis) {
+      console.log(`Would remove account: ${username} (Redis not configured)`);
+      return;
+    }
     
-    throw new Error('Account management not available with Edge Config (read-only)');
+    const accounts = await getAccounts();
+    const filteredAccounts = accounts.filter(
+      acc => acc.username.toLowerCase() !== username.toLowerCase()
+    );
+    await redis.set(ACCOUNTS_KEY, filteredAccounts);
+    
+    // キャッシュされたツイートも削除
+    await redis.del(`${TWEETS_CACHE_PREFIX}${username}`);
   } catch (error) {
     console.error('Error removing account:', error);
     throw error;

@@ -28,8 +28,9 @@ TWITTER_BEARER_TOKEN=your_twitter_bearer_token_here
 # Admin Password for Account Registration
 ADMIN_PASSWORD=your_secure_admin_password_here
 
-# Vercel Edge Config Configuration
-EDGE_CONFIG=your_edge_config_connection_string_here
+# Upstash Redis Configuration
+UPSTASH_REDIS_REST_URL=your_upstash_redis_url_here
+UPSTASH_REDIS_REST_TOKEN=your_upstash_redis_token_here
 ```
 
 ### 3. Twitter API の設定
@@ -37,30 +38,17 @@ EDGE_CONFIG=your_edge_config_connection_string_here
 1. [Twitter Developer Portal](https://developer.twitter.com/) でアプリケーションを作成
 2. Bearer Token を取得し、`TWITTER_BEARER_TOKEN` に設定
 
-### 4. Vercel Edge Config の設定
+### 4. Upstash Redis の設定
 
-1. Vercelプロジェクトでストレージを有効化
-2. Edge Configを作成
-3. 接続文字列を環境変数に設定
-4. アカウント情報をEdge Configに手動設定
+1. [https://upstash.com](https://upstash.com) でアカウント作成
+2. Redisデータベースを作成（Global推奨）
+3. 接続情報を環境変数に設定
 
-#### Edge Configでのアカウント設定例
-```json
-{
-  "accounts": [
-    {
-      "id": "1",
-      "username": "elonmusk",
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    },
-    {
-      "id": "2", 
-      "username": "vercel",
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    }
-  ]
-}
-```
+#### 設定手順：
+1. Upstashダッシュボードで「Create Database」
+2. 「Global」を選択（最高のパフォーマンス）
+3. データベース名を入力
+4. 作成後、接続情報をコピーして環境変数に設定
 
 ## 開発環境での実行
 
@@ -90,7 +78,7 @@ npm run dev
 - **フレームワーク**: Next.js 15
 - **言語**: TypeScript
 - **スタイリング**: Tailwind CSS
-- **データベース**: Vercel Edge Config
+- **データベース**: Upstash Redis
 - **API**: Twitter API v2
 - **認証**: bcryptjs
 - **デプロイ**: Vercel
@@ -112,7 +100,7 @@ src/
 │   └── LoadingSpinner.tsx      # ローディングコンポーネント
 ├── lib/
 │   ├── twitter.ts              # Twitter API クライアント
-│   └── kv.ts                   # Vercel Edge Config ユーティリティ
+│   └── kv.ts                   # Upstash Redis ユーティリティ
 └── types/
     └── index.ts                # TypeScript型定義
 ```
