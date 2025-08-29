@@ -1,0 +1,12 @@
+{
+  "version": 2,
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "installCommand": "npm install",
+  "env": {
+    "TWITTER_BEARER_TOKEN": "@twitter_bearer_token",
+    "ADMIN_PASSWORD": "@admin_password",
+    "KV_REST_API_URL": "@kv_rest_api_url",
+    "KV_REST_API_TOKEN": "@kv_rest_api_token"
+  }
+}
