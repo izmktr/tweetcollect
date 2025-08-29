@@ -44,6 +44,10 @@ export function formatTweetData(tweetData: TweetData) {
   
   return tweetData.tweets.map(tweet => ({
     ...tweet,
-    author: userMap.get(tweet.author_id)
-  })).sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    author: tweet.author_id ? userMap.get(tweet.author_id) : undefined
+  })).sort((a, b) => {
+    const aDate = a.created_at ? new Date(a.created_at).getTime() : 0;
+    const bDate = b.created_at ? new Date(b.created_at).getTime() : 0;
+    return bDate - aDate;
+  });
 }
